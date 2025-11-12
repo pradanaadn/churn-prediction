@@ -1,0 +1,239 @@
+services:
+  # Prefect PostgreSQL Database
+  prefect-db:
+    image: postgres:17
+    container_name: prefect-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: prefect
+      POSTGRES_PASSWORD: prefect-password
+      POSTGRES_DB: prefect
+    volumes:
+      - prefect-db-data:/var/lib/postgresql/data
+    networks:
+      - prefect-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prefect"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for messaging/cache
+  redis:
+    image: redis:8
+    container_name: prefect-redis
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - prefect-network
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "6379:6379"
+
+  prefect-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prefect-server
+    restart: unless-stopped
+    command: uv run prefect server start --host 0.0.0.0 --no-services
+    environment:
+      PREFECT_SERVER_API_HOST: 0.0.0.0
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://prefect:prefect-password@prefect-db:5432/prefect
+      PREFECT_UI_URL: http://localhost:4200
+      PREFECT_API_URL: http://prefect-server:4200/api
+      PREFECT_UI_API_URL: http://localhost:4200/api
+      PREFECT_SERVER_ALLOW_EPHEMERAL_MODE: "false"
+      PREFECT_MESSAGING_BROKER: prefect_redis.messaging
+      PREFECT_MESSAGING_CACHE: prefect_redis.messaging
+      PREFECT_REDIS_MESSAGING_HOST: redis
+      PREFECT_REDIS_MESSAGING_PORT: 6379
+      PREFECT_REDIS_MESSAGING_DB: 0
+    ports:
+      - "4200:4200"
+    depends_on:
+      prefect-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - prefect-network
+    volumes:
+      - prefect-data:/root/.prefect
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4200/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  prefect-services:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prefect-services
+    restart: unless-stopped
+    command: uv run prefect server services start
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      PREFECT_API_DATABASE_CONNECTION_URL: postgresql+asyncpg://prefect:prefect-password@prefect-db:5432/prefect
+      PREFECT_MESSAGING_BROKER: prefect_redis.messaging
+      PREFECT_MESSAGING_CACHE: prefect_redis.messaging
+      PREFECT_REDIS_MESSAGING_HOST: redis
+      PREFECT_REDIS_MESSAGING_PORT: 6379
+      PREFECT_REDIS_MESSAGING_DB: 0
+    depends_on:
+      prefect-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      prefect-server:
+        condition: service_healthy
+    networks:
+      - prefect-network
+    volumes:
+      - prefect-data:/root/.prefect
+
+  prefect-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prefect-worker
+    restart: unless-stopped
+    command: uv run prefect worker start --pool default-pool
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+      PREFECT_MESSAGING_BROKER: prefect_redis.messaging
+      PREFECT_REDIS_MESSAGING_HOST: redis
+      PREFECT_REDIS_MESSAGING_PORT: 6379
+      PREFECT_REDIS_MESSAGING_DB: 0
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - prefect-network
+    volumes:
+      - prefect-worker-data:/root/.prefect
+
+  prefect-cli:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prefect-cli
+    restart: "no"
+    entrypoint: ["tail", "-f", "/dev/null"]
+    environment:
+      PREFECT_API_URL: http://prefect-server:4200/api
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - prefect-network
+    volumes:
+      - prefect-flows:/flows
+    profiles:
+      - management
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: minio123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio-data:/data
+    networks:
+      - prefect-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # === MLflow Tracking Server ===
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:latest
+    container_name: mlflow
+    restart: unless-stopped
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: minio
+      AWS_SECRET_ACCESS_KEY: minio123
+    command: >
+      mlflow server
+      --backend-store-uri postgresql+psycopg2://prefect:prefect-password@prefect-db:5432/prefect
+      --default-artifact-root s3://mlflow/
+      --host 0.0.0.0
+      --port 5000
+    depends_on:
+      prefect-db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    networks:
+      - prefect-network
+    volumes:
+      - mlflow-data:/mlflow
+
+  evidently:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: evidently
+    restart: unless-stopped
+    command: uv run evidently ui --port 7000 --workspace /app/reports
+    environment:
+      EVIDENTLY_UI_WORKSPACE: /app/reports        
+      EVIDENTLY_UI_HOST: 0.0.0.0                 
+      EVIDENTLY_UI_PORT: 7000                    
+      EVIDENTLY_API_KEY: your-secure-api-key     
+      PREFECT_API_URL: http://prefect-server:4200/api  
+      MLFLOW_TRACKING_URI: http://mlflow:5000          
+      AWS_ACCESS_KEY_ID: minio
+      AWS_SECRET_ACCESS_KEY: minio123
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+    ports:
+      - "7000:7000"
+    volumes:
+      - evidently-data:/app/reports
+    networks:
+      - prefect-network
+    depends_on:
+      - prefect-server
+      - mlflow
+      - minio
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7000/health" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+volumes:
+  prefect-db-data:
+  prefect-data:
+  prefect-worker-data:
+  prefect-worker-data-docker:
+  prefect-flows:
+  redis-data:
+  minio-data:
+  mlflow-data:
+  evidently-data:
+
+networks:
+  prefect-network:
+    driver: bridge
