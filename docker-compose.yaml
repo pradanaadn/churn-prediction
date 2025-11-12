@@ -1,5 +1,4 @@
 services:
-  # Prefect PostgreSQL Database
   prefect-db:
     image: postgres:17
     container_name: prefect-postgres
@@ -18,7 +17,6 @@ services:
       timeout: 5s
       retries: 5
 
-  # Redis for messaging/cache
   redis:
     image: redis:8
     container_name: prefect-redis
