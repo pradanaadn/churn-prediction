@@ -1,0 +1,60 @@
+{
+  "id": "019a7dfe-29d5-7b6e-97e2-c8248fa6561b",
+  "project_id": "019a7dfa-d47e-737d-9471-35cb8955a292",
+  "author_id": "00000000-0000-7000-8000-000000000000",
+  "name": "run-reference-019a7dfe-2934-7329-8c51-d4167e4c2be4",
+  "description": "",
+  "data_definition": {
+    "id_column": null,
+    "timestamp": null,
+    "service_columns": null,
+    "numerical_columns": [
+      "Age",
+      "AnnualIncome"
+    ],
+    "categorical_columns": [
+      "Gender",
+      "MembershipDuration",
+      "Location"
+    ],
+    "text_columns": [],
+    "datetime_columns": [],
+    "unknown_columns": [],
+    "list_columns": [],
+    "classification": null,
+    "regression": null,
+    "llm": null,
+    "numerical_descriptors": [],
+    "categorical_descriptors": [],
+    "test_descriptors": null,
+    "ranking": null,
+    "special_columns": []
+  },
+  "source": {
+    "type": "evidently:data_source:FileDataSource",
+    "filter_by": null,
+    "sort_by": null,
+    "project_id": "019a7dfa-d47e-737d-9471-35cb8955a292",
+    "filename": "019a7dfa-d47e-737d-9471-35cb8955a292/datasets/019a7dfe-29d5-7b6e-97e2-c8248fa6561b/run-reference-019a7dfe-2934-7329-8c51-d4167e4c2be4.parquet",
+    "is_tmp": false
+  },
+  "size_bytes": 5417,
+  "row_count": 140,
+  "column_count": 5,
+  "all_columns": [
+    "Age",
+    "AnnualIncome",
+    "Gender",
+    "MembershipDuration",
+    "Location"
+  ],
+  "is_draft": false,
+  "draft_params": null,
+  "origin": "file",
+  "metadata": {},
+  "tags": [],
+  "tracing_params": null,
+  "created_at": "2025-11-13T16:13:20.216049",
+  "updated_at": "2025-11-13T16:13:20.216049",
+  "author_name": ""
+}

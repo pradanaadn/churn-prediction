@@ -1,8 +1,8 @@
 {
-  "id": "019a7df8-54bf-79ae-ac3e-e6bca8668c04",
-  "project_id": "019a7df8-4dd9-7097-bef6-82e4131e055a",
+  "id": "019a7dfe-29a7-73aa-bc21-abe0a1155f58",
+  "project_id": "019a7dfa-d47e-737d-9471-35cb8955a292",
   "author_id": "00000000-0000-7000-8000-000000000000",
-  "name": "run-current-019a7df8-540e-7517-86ea-207caf160936",
+  "name": "run-current-019a7dfe-2934-7329-8c51-d4167e4c2be4",
   "description": "",
   "data_definition": {
     "id_column": null,
@@ -34,11 +34,11 @@
     "type": "evidently:data_source:FileDataSource",
     "filter_by": null,
     "sort_by": null,
-    "project_id": "019a7df8-4dd9-7097-bef6-82e4131e055a",
-    "filename": "019a7df8-4dd9-7097-bef6-82e4131e055a/datasets/019a7df8-54bf-79ae-ac3e-e6bca8668c04/run-current-019a7df8-540e-7517-86ea-207caf160936.parquet",
+    "project_id": "019a7dfa-d47e-737d-9471-35cb8955a292",
+    "filename": "019a7dfa-d47e-737d-9471-35cb8955a292/datasets/019a7dfe-29a7-73aa-bc21-abe0a1155f58/run-current-019a7dfe-2934-7329-8c51-d4167e4c2be4.parquet",
     "is_tmp": false
   },
-  "size_bytes": 12541,
+  "size_bytes": 12723,
   "row_count": 1000,
   "column_count": 5,
   "all_columns": [
@@ -54,7 +54,7 @@
   "metadata": {},
   "tags": [],
   "tracing_params": null,
-  "created_at": "2025-11-13T16:06:58.012552",
-  "updated_at": "2025-11-13T16:06:58.012552",
+  "created_at": "2025-11-13T16:13:20.202097",
+  "updated_at": "2025-11-13T16:13:20.202097",
   "author_name": ""
 }

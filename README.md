@@ -3,7 +3,7 @@
 ML pipeline for customer churn prediction using LightGBM, Prefect, and Evidently.
 
 **[Demo Video](https://www.loom.com/share/61a4b49afc9d499eb54b291d1844d6df)**
-
+**[Drift Detection Monitoring Demo](https://www.loom.com/share/46b64b100b4e4ce9b66df46263f7d403)**
 ## Quick Start
 
 ```bash
