@@ -5,13 +5,16 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "dependency-injector>=4.48.2",
     "evidently>=0.7.16",
     "joblib>=1.5.2",
     "jupyterlab>=4.4.10",
     "lightgbm>=4.6.0",
+    "loguru>=0.7.3",
     "matplotlib>=3.10.7",
     "mlflow>=3.6.0",
     "numpy>=2.3.4",
+    "pandantic>=1.0.1",
     "pandas>=2.3.3",
     "prefect[redis]>=3.6.1",
     "scikit-learn>=1.7.2",

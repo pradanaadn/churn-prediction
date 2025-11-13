@@ -1,23 +1,18 @@
 FROM python:3.13-slim-trixie
 
+# The installer requires curl (and certificates) to download the release archive
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
+
+# Download the latest installer
+ADD https://astral.sh/uv/install.sh /uv-installer.sh
+
+# Run the installer then remove it
+RUN sh /uv-installer.sh && rm /uv-installer.sh
+
+# Ensure the installed binary is on the `PATH`
+ENV PATH="/root/.local/bin/:$PATH"
+
 WORKDIR /app
-
 COPY pyproject.toml uv.lock ./
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    curl ca-certificates build-essential git gcc libpq-dev && \
-    curl -fsSL https://astral.sh/uv/install.sh -o /uv-installer.sh && \
-    sh /uv-installer.sh && rm /uv-installer.sh && \
-    export PATH="/root/.local/bin:$PATH" && \
-    /root/.local/bin/uv sync --locked && \
-    apt-get purge -y --auto-remove build-essential git gcc && \
-    rm -rf /var/lib/apt/lists/* /root/.cache /tmp/* && \
-    find / -name '__pycache__' -type d -prune -exec rm -rf {} + || true
-
+RUN uv sync --locked
 COPY . /app
-
-ENV PATH="/root/.local/bin:$PATH"
-
-RUN useradd --uid 1000 --create-home appuser && chown -R appuser:appuser /app
-USER appuser
