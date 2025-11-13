@@ -6,7 +6,6 @@ from src.core.schemas import DatasetSchema
 
 
 class AppContainer(containers.DeclarativeContainer):
-    """Application IoC container."""
 
     wiring_config: containers.WiringConfiguration = containers.WiringConfiguration(
         packages=["src"]

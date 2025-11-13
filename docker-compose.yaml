@@ -91,7 +91,22 @@ services:
       - prefect-network
     volumes:
       - prefect-worker-data:/root/.prefect
-
+  prefect-deployment:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prefect-deployment
+    restart: "no"
+    command: uv run python src/main.py
+    environment:
+      PREFECT_API_URL: ${PREFECT_API_URL}
+    depends_on:
+      prefect-server:
+        condition: service_healthy
+    networks:
+      - prefect-network
+    volumes:
+      - ./src:/app/src
   prefect-cli:
     build:
       context: .

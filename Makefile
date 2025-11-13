@@ -2,15 +2,17 @@
 
 build:
 	DOCKER_BUILDKIT=1 docker build -f Dockerfile -t wwwaste-data-pipeline:latest .
-
+copy-env:
+	cp .env.example .env
 up:
-	docker compose -f docker-compose.yaml -p churn-prediction up -d
-
+	docker compose -p churn-prediction up -d
+up-build-debug:
+	docker compose -f docker-compose.yaml -p churn-prediction up --build 
 down:
-	docker compose -f docker-compose.yaml -p churn-prediction down
+	docker compose  -p churn-prediction down
 
 start:
-	docker compose -f docker-compose.yaml -p churn-prediction start 
+	docker compose  -p churn-prediction start 
 
 stop:
-	docker compose -f docker-compose.yaml -p churn-prediction stop
+	docker compose  -p churn-prediction stop
