@@ -6,6 +6,7 @@ copy-env:
 	cp .env.example .env
 up:
 	docker compose -p churn-prediction up -d
+
 up-build-debug:
 	docker compose -f docker-compose.yaml -p churn-prediction up --build 
 down:

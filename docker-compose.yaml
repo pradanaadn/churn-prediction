@@ -9,6 +9,7 @@ services:
       POSTGRES_DB: prefect
     volumes:
       - prefect-db-data:/var/lib/postgresql/data
+      - ./:/app
     networks:
       - prefect-network
     healthcheck:
@@ -23,6 +24,8 @@ services:
     restart: unless-stopped
     volumes:
       - redis-data:/data
+      - ./:/app
+
     networks:
       - prefect-network
     healthcheck:
@@ -63,6 +66,8 @@ services:
       - prefect-network
     volumes:
       - prefect-data:/root/.prefect
+      - ./:/app
+
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:4200/api/health || exit 1"]
       interval: 10s
@@ -91,6 +96,7 @@ services:
       - prefect-network
     volumes:
       - prefect-worker-data:/root/.prefect
+      - ./:/app
   prefect-deployment:
     build:
       context: .
@@ -124,8 +130,8 @@ services:
     networks:
       - prefect-network
     volumes:
-      - prefect-flows:/flows
       - ./flows:/app/flows
+      - ./:/app
     profiles:
       - management
 
@@ -135,7 +141,7 @@ services:
       dockerfile: Dockerfile
     container_name: evidently
     restart: unless-stopped
-    command: uv run evidently ui --port 7000 --workspace /app/reports
+    command: uv run evidently ui --host 0.0.0.0 --port 7000 --workspace /app/reports
     environment:
       EVIDENTLY_UI_WORKSPACE: /app/reports        
       EVIDENTLY_UI_HOST: 0.0.0.0                 
@@ -144,7 +150,6 @@ services:
     ports:
       - "7000:7000"
     volumes:
-      - evidently-data:/app/reports
       - ./reports:/app/reports
     networks:
       - prefect-network
@@ -152,11 +157,10 @@ services:
       prefect-server:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:7000 || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://0.0.0.0:7000 || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
-
 volumes:
   prefect-db-data:
   prefect-data:
